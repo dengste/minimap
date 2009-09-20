@@ -86,7 +86,7 @@ By default, this is only a different background color."
   :type 'number
   :group 'minimap)
 
-(defcustom minimap-always-recenter t
+(defcustom minimap-always-recenter nil
   "Whether minimap sidebar should be recentered after every point movement."
   :type 'boolean
   :group 'minimap)
@@ -287,8 +287,8 @@ When FORCE, enforce update of the active region."
 	;; Copy overlays from base buffer.
 	(while baseov
 	  (setq cur (copy-overlay (car baseov)))
-	  (move-overlay cur 
-			(overlay-start cur) (overlay-end cur) 
+	  (move-overlay cur
+			(overlay-start cur) (overlay-end cur)
 			(current-buffer))
 	  (setq baseov (cdr baseov)))
 	;; Re-apply font overlay
