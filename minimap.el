@@ -207,6 +207,7 @@ This is meant to be called from the idle-timer or the post command hook."
 	   (end-posn (event-end start-event))
 	   (start-point (posn-point end-posn))
 	   (make-cursor-line-fully-visible nil)
+	   (cursor-type nil)
            pt ev)
       (move-overlay minimap-active-overlay start-point minimap-end)
       (track-mouse
