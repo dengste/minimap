@@ -208,7 +208,10 @@ This is meant to be called from the idle-timer or the post command hook."
 	   (start-point (posn-point end-posn))
 	   (make-cursor-line-fully-visible nil)
 	   (cursor-type nil)
+	   (pcselmode pc-selection-mode)
            pt ev)
+      (when pcselmode
+	(pc-selection-mode))
       (move-overlay minimap-active-overlay start-point minimap-end)
       (track-mouse
 	(minimap-set-overlay start-point)
@@ -219,7 +222,9 @@ This is meant to be called from the idle-timer or the post command hook."
 	  (when (numberp pt)
 	    (minimap-set-overlay pt))))
       (select-window (get-buffer-window (buffer-base-buffer)))
-      (minimap-update))))
+      (minimap-update)
+      (when pcselmode
+	(pc-selection-mode)))))
   
 (defun minimap-set-overlay (pt)
   "Set overlay position, with PT being the middle."
