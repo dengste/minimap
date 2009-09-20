@@ -4,7 +4,7 @@
 
 ;; Author: David Engster <dengste@eml.cc>
 ;; Keywords:
-;; Version: 0.3
+;; Version: 0.4
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -99,12 +99,13 @@ By default, this is only a different background color."
 (defvar minimap-bufname nil)
 (defvar minimap-timer-object nil)
 (defvar minimap-active-minimaps 0)
+(defvar minimap-base-overlay nil)
 
 (make-variable-buffer-local 'minimap-start)
 (make-variable-buffer-local 'minimap-end)
 (make-variable-buffer-local 'minimap-active-overlay)
 (make-variable-buffer-local 'minimap-bufname)
-
+(make-variable-buffer-local 'minimap-base-overlay)
 
 ;;; Minimap creation / killing
 
@@ -136,12 +137,11 @@ By default, this is only a different background color."
 
 (defun minimap-new-minimap (bufname)
   "Create new minimap BUFNAME for current buffer and window."
-  (let ((indbuf (make-indirect-buffer (current-buffer) bufname t))
-	ov)
+  (let ((indbuf (make-indirect-buffer (current-buffer) bufname t)))
     (setq minimap-bufname bufname)
     (switch-to-buffer indbuf)
-    (setq ov (make-overlay (point-min) (point-max) nil t t))
-    (overlay-put ov 'face 'minimap-font-face)
+    (setq minimap-base-overlay (make-overlay (point-min) (point-max) nil t t))
+    (overlay-put minimap-base-overlay 'face 'minimap-font-face)
     (setq minimap-start (window-start)
 	  minimap-end (window-end)
 	  minimap-active-overlay (make-overlay minimap-start minimap-end)
@@ -149,6 +149,7 @@ By default, this is only a different background color."
     (overlay-put minimap-active-overlay 'face
 		 'minimap-active-region-background)
     (minimap-mode 1)
+    (minimap-sync-overlays)
     (setq buffer-read-only t)))
 
 (defun minimap-kill ()
@@ -175,9 +176,10 @@ Cancel the idle timer if no more minimaps are active."
 
 ;;; Minimap update
 
-(defun minimap-update ()
-  "Update minimap sidebar.
-This is meant to be called from the idle-timer or the post command hook."
+(defun minimap-update (&optional force)
+  "Update minimap sidebar if necessary.
+This is meant to be called from the idle-timer or the post command hook.
+When FORCE, enforce update of the active region."
   (when minimap-bufname
     (let ((win (get-buffer-window minimap-bufname))
 	  start end pt ov)
@@ -187,7 +189,8 @@ This is meant to be called from the idle-timer or the post command hook."
 	      pt (point)
 	      ov)
 	(with-selected-window win
-	  (unless (and (= minimap-start start)
+	  (unless (and (not force)
+		       (= minimap-start start)
 		       (= minimap-end end))
 	    (move-overlay minimap-active-overlay start end)
 	    (setq minimap-start start
@@ -270,6 +273,35 @@ This is meant to be called from the idle-timer or the post command hook."
 (define-minor-mode minimap-mode
   "Minor mode for minimap sidebar."
   nil "minimap" minimap-mode-map)
+
+;;; Sync minimap with modes which create/delete overlays.
+
+(defun minimap-sync-overlays ()
+  "Synchronize overlays between base and minimap buffer."
+  (interactive)
+  (when minimap-bufname
+    (let ((baseov (overlays-in (point-min) (point-max)))
+	  miniov cur props p)
+      (with-current-buffer minimap-bufname
+	(remove-overlays)
+	;; Copy overlays from base buffer.
+	(while baseov
+	  (setq cur (copy-overlay (car baseov)))
+	  (move-overlay cur 
+			(overlay-start cur) (overlay-end cur) 
+			(current-buffer))
+	  (setq baseov (cdr baseov)))
+	;; Re-apply font overlay
+	(move-overlay minimap-base-overlay (point-min) (point-max))))
+    (minimap-update t)))
+
+;; outline-(minor-)mode
+(add-hook 'outline-view-change-hook 'minimap-sync-overlays)
+
+;; hideshow
+(add-hook 'hs-hide-hook 'minimap-sync-overlays)
+(add-hook 'hs-show-hook 'minimap-sync-overlays)
+
 
 (provide 'minimap)
 
