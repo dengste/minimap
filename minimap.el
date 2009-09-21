@@ -90,6 +90,11 @@ By default, this is only a different background color."
   :type 'boolean
   :group 'minimap)
 
+(defcustom minimap-hide-scroll-bar t
+  "Whether the minimap should hide the vertical scrollbar."
+  :type 'boolena
+  :group 'minimap)
+
 ;;; Internal variables
 
 (defvar minimap-start nil)
@@ -138,6 +143,9 @@ By default, this is only a different background color."
   "Create new minimap BUFNAME for current buffer and window."
   (let ((indbuf (make-indirect-buffer (current-buffer) bufname t)))
     (setq minimap-bufname bufname)
+    (set-buffer indbuf)
+    (when minimap-hide-scroll-bar
+      (setq vertical-scroll-bar nil))
     (switch-to-buffer indbuf)
     (setq minimap-base-overlay (make-overlay (point-min) (point-max) nil t t))
     (overlay-put minimap-base-overlay 'face 'minimap-font-face)
