@@ -57,8 +57,7 @@
   :group 'convenience)
 
 (defface minimap-font-face
-;;  '((default :family "Bitstream Vera Sans Mono" :height 40))
-  '((default :family "Bitstream Vera Sans" :height 40))
+  '((default :family "DejaVu Sans Mono" :height 30))
   "Face used for text in minimap buffer, notably the font familiy and height.
 This height should be really small. You probably want to use a
 TrueType Font for this."
