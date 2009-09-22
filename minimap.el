@@ -92,7 +92,12 @@ By default, this is only a different background color."
 
 (defcustom minimap-hide-scroll-bar t
   "Whether the minimap should hide the vertical scrollbar."
-  :type 'boolena
+  :type 'boolean
+  :group 'minimap)
+
+(defcustom minimap-hide-fringes t
+  "Whether the minimap should hide the fringes."
+  :type 'boolean
   :group 'minimap)
 
 ;;; Internal variables
@@ -157,6 +162,8 @@ By default, this is only a different background color."
 		 'minimap-active-region-background)
     (minimap-mode 1)
     (minimap-sync-overlays)
+    (when minimap-hide-fringes
+      (set-window-fringes nil 0 0))
     (setq buffer-read-only t)))
 
 (defun minimap-kill ()
