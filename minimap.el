@@ -100,6 +100,12 @@ By default, this is only a different background color."
   :type 'boolean
   :group 'minimap)
 
+(defcustom minimap-dedicated-window nil
+  "Whether the minimap should create a dedicated window."
+  :type 'boolean
+  :group 'minimap)
+
+
 ;;; Internal variables
 
 (defvar minimap-start nil)
@@ -164,6 +170,8 @@ By default, this is only a different background color."
     (minimap-sync-overlays)
     (when minimap-hide-fringes
       (set-window-fringes nil 0 0))
+    (when minimap-dedicated-window
+      (set-window-dedicated-p nil t))
     (setq buffer-read-only t)))
 
 (defun minimap-kill ()
