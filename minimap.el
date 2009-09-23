@@ -124,6 +124,7 @@ By default, this is only a different background color."
 
 ;;; Minimap creation / killing
 
+;;;###autoload
 (defun minimap-create ()
   "Create a minimap sidebar for the current window."
   (interactive)
@@ -174,6 +175,7 @@ By default, this is only a different background color."
       (set-window-dedicated-p nil t))
     (setq buffer-read-only t)))
 
+;;;###autoload
 (defun minimap-kill ()
   "Kill minimap for current buffer.
 Cancel the idle timer if no more minimaps are active."
