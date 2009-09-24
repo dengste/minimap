@@ -105,6 +105,16 @@ By default, this is only a different background color."
   :type 'boolean
   :group 'minimap)
 
+(defcustom minimap-sync-overlay-properties '(face invisible)
+  "Specifies which overlay properties should be synced.
+Unlike text properties, overlays are not applied automatically to
+the minimap and must be explicitly synced.  This variable
+specifies which overlay properties should be synced by
+`minimap-sync-overlays'.  Most importantly, this variable should
+include 'invisible', so that hidden text does not appear in the
+minimap buffer."
+  :type '(repeat symbol)
+  :group 'minimap)
 
 ;;; Internal variables
 
@@ -305,19 +315,33 @@ When FORCE, enforce update of the active region."
   (interactive)
   (when minimap-bufname
     (let ((baseov (overlays-in (point-min) (point-max)))
-	  miniov cur props p)
+	  ov props p)
       (with-current-buffer minimap-bufname
 	(remove-overlays)
-	;; Copy overlays from base buffer.
 	(while baseov
-	  (setq cur (copy-overlay (car baseov)))
-	  (move-overlay cur
-			(overlay-start cur) (overlay-end cur)
-			(current-buffer))
+	  (when (setq props (minimap-get-sync-properties (car baseov)))
+	    (setq ov (make-overlay (overlay-start (car baseov))
+				   (overlay-end (car baseov))))
+	    (while (setq p (car props))
+	      (overlay-put ov (car p) (cadr p))
+	      (setq props (cdr props))))
 	  (setq baseov (cdr baseov)))
 	;; Re-apply font overlay
 	(move-overlay minimap-base-overlay (point-min) (point-max))))
     (minimap-update t)))
+
+(defun minimap-get-sync-properties (ov)
+  "Get properties from overlay OV which should be synced.
+You can specify those properties with
+`minimap-sync-overlay-properties'."
+  (delq nil
+	(mapcar
+	 (lambda (p)
+	   (let ((val (overlay-get ov p)))
+	     (if val
+		 (list p val)
+	       nil)))
+	 minimap-sync-overlay-properties)))
 
 ;; outline-(minor-)mode
 (add-hook 'outline-view-change-hook 'minimap-sync-overlays)
@@ -325,7 +349,6 @@ When FORCE, enforce update of the active region."
 ;; hideshow
 (add-hook 'hs-hide-hook 'minimap-sync-overlays)
 (add-hook 'hs-show-hook 'minimap-sync-overlays)
-
 
 (provide 'minimap)
 
