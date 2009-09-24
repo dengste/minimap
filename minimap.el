@@ -178,6 +178,9 @@ minimap buffer."
     (overlay-put minimap-active-overlay 'face
 		 'minimap-active-region-background)
     (minimap-mode 1)
+    (when (and (boundp linum-mode)
+	       linum-mode)
+      (linum-mode 0))
     (minimap-sync-overlays)
     (when minimap-hide-fringes
       (set-window-fringes nil 0 0))
