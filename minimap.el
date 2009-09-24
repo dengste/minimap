@@ -159,7 +159,8 @@ minimap buffer."
 		(run-with-idle-timer minimap-update-delay t 'minimap-update)))
 	(setq minimap-active-minimaps
 	      (1+ minimap-active-minimaps))))
-    (other-window 1)))
+    (other-window 1)
+    (minimap-sync-overlays)))
 
 (defun minimap-new-minimap (bufname)
   "Create new minimap BUFNAME for current buffer and window."
@@ -181,7 +182,6 @@ minimap buffer."
     (when (and (boundp 'linum-mode)
 	       linum-mode)
       (linum-mode 0))
-    (minimap-sync-overlays)
     (when minimap-hide-fringes
       (set-window-fringes nil 0 0))
     (when minimap-dedicated-window
