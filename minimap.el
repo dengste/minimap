@@ -58,9 +58,9 @@
 
 (defface minimap-font-face
   '((default :family "DejaVu Sans Mono" :height 30))
-  "Face used for text in minimap buffer, notably the font familiy and height.
-This height should be really small. You probably want to use a
-TrueType Font for this."
+  "Face used for text in minimap buffer, notably the font family and height.
+This height should be really small.  You probably want to use a
+TrueType font for this."
   :group 'minimap)
 
 (defface minimap-active-region-background
@@ -290,9 +290,8 @@ When FORCE, enforce update of the active region."
       (redisplay t)
       (setq winend (window-end)))
     (move-overlay minimap-active-overlay newstart newend)))
-
-(defun minimap-line-to-pos (line)
-  "Returns point position of line number LINE."
+ (defun minimap-line-to-pos (line)
+  "Return point position of line number LINE."
   (save-excursion
     (goto-char 1)
     (if (eq selective-display t)
