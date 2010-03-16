@@ -80,6 +80,13 @@ By default, this is only a different background color."
   :type 'number
   :group 'minimap)
 
+(defcustom minimap-window-location 'left
+  "Location of the minimap window.
+Can be either the symbol `left' or `right'."
+  :type '(choice (const :tag "Left" left)
+		 (const :tag "Right" right))
+  :group 'minimap)
+
 (defcustom minimap-buffer-name-prefix "*MINIMAP* "
   "Prefix for buffer names of minimap sidebar."
   :type 'string
@@ -149,9 +156,14 @@ minimap buffer."
 	       (get-buffer-window (get-buffer minimap-bufname)))
     (let ((bufname (concat minimap-buffer-name-prefix
 			   (buffer-name (current-buffer))))
-	  (new-win (split-window-horizontally
-		    (round (* (window-width)
-			      minimap-width-fraction)))))
+	  (new-win (if (eq minimap-window-location 'left)
+		       (split-window-horizontally
+			(round (* (window-width)
+				  minimap-width-fraction)))
+		     (split-window-horizontally
+		      (round (* (window-width)
+				(- 1 minimap-width-fraction))))
+		     (other-window 1))))
       ;; If minimap exists but isn't visible, reuse it.
       (if (and minimap-bufname
 	       (get-buffer minimap-bufname))
