@@ -1,6 +1,6 @@
 ;;; minimap.el --- Minimap sidebar for Emacs
 
-;; Copyright (C) 2009  David Engster
+;; Copyright (C) 2009, 2010  David Engster
 
 ;; Author: David Engster <dengste@eml.cc>
 ;; Keywords:
@@ -36,6 +36,11 @@
 ;;  * Use 'M-x minimap-create' in a buffer you're currently editing.
 ;;  * Use 'M-x minimap-kill' to kill the minimap.
 ;;  * Use 'M-x customize-group RET minimap RET' to adapt minimap to your needs.
+
+;; Download:
+;;  You can always get the latest version from the git repository:
+;;       git://randomsample.de/minimap.git
+;;  or   http://randomsample.de/minimap.git
 
 ;;; KNOWN BUGS:
 
