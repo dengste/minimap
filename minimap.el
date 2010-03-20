@@ -4,7 +4,7 @@
 
 ;; Author: David Engster <dengste@eml.cc>
 ;; Keywords:
-;; Version: 0.4
+;; Version: 0.5
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -65,7 +65,8 @@
   '((default :family "DejaVu Sans Mono" :height 30))
   "Face used for text in minimap buffer, notably the font family and height.
 This height should be really small.  You probably want to use a
-TrueType font for this."
+TrueType font for this.  After changing this, you should
+recreate the minimap to avoid problems with recentering."
   :group 'minimap)
 
 (defface minimap-active-region-background
@@ -100,6 +101,28 @@ Can be either the symbol `left' or `right'."
 (defcustom minimap-always-recenter nil
   "Whether minimap sidebar should be recentered after every point movement."
   :type 'boolean
+  :group 'minimap)
+
+(defcustom minimap-recenter-type 'relative
+  "Specifies the type of recentering the minimap should use.
+The minimap can use different types of recentering, i.e., how the
+minimap should behave when you scroll in the main window or when
+you drag the active region with the mouse.  The following
+explanations will probably not help much, so simply try them and
+choose the one which suits you best.
+
+`relative' -- The position of the active region corresponds with
+the relative position of point in the buffer.  This the default.
+
+`middle' -- The active region will stay fixed in the middle of
+the minimap.
+
+`free' -- The position will be more or less free.  When dragging
+the active region, the minimap will scroll when you reach the
+bottom or top."
+  :type '(choice (const :tag "Relative" relative)
+		 (const :tag "Middle" middle)
+		 (const :tag "Free" free))
   :group 'minimap)
 
 (defcustom minimap-hide-scroll-bar t
@@ -137,12 +160,14 @@ minimap buffer."
 (defvar minimap-timer-object nil)
 (defvar minimap-active-minimaps 0)
 (defvar minimap-base-overlay nil)
+(defvar minimap-numlines nil)
 
 (make-variable-buffer-local 'minimap-start)
 (make-variable-buffer-local 'minimap-end)
 (make-variable-buffer-local 'minimap-active-overlay)
 (make-variable-buffer-local 'minimap-bufname)
 (make-variable-buffer-local 'minimap-base-overlay)
+(make-variable-buffer-local 'minimap-numlines)
 
 ;;; Minimap creation / killing
 
@@ -181,7 +206,8 @@ minimap buffer."
 
 (defun minimap-new-minimap (bufname)
   "Create new minimap BUFNAME for current buffer and window."
-  (let ((indbuf (make-indirect-buffer (current-buffer) bufname t)))
+  (let ((indbuf (make-indirect-buffer (current-buffer) bufname t))
+	(edges (window-pixel-edges)))
     (setq minimap-bufname bufname)
     (set-buffer indbuf)
     (when minimap-hide-scroll-bar
@@ -203,7 +229,13 @@ minimap buffer."
       (set-window-fringes nil 0 0))
     (when minimap-dedicated-window
       (set-window-dedicated-p nil t))
-    (setq buffer-read-only t)))
+    (setq buffer-read-only t)
+    ;; Calculate the actual number of lines displayable with the minimap face.
+    (setq minimap-numlines
+	  (floor
+	   (/
+	    (- (nth 3 edges) (nth 1 edges))
+	    (car (progn (redisplay) (window-line-height))))))))
 
 ;;;###autoload
 (defun minimap-kill ()
@@ -248,7 +280,11 @@ When FORCE, enforce update of the active region."
 		       (= minimap-end end))
 	    (move-overlay minimap-active-overlay start end)
 	    (setq minimap-start start
-		  minimap-end end))
+		  minimap-end end)
+	    (minimap-recenter (line-number-at-pos (/ (+ end start) 2))
+			      (/ (- (line-number-at-pos end)
+				    (line-number-at-pos start))
+				 2)))
 	  (goto-char pt)
 	  (when minimap-always-recenter
 	    (recenter (round (/ (window-height) 2)))))))))
@@ -295,18 +331,18 @@ When FORCE, enforce update of the active region."
 	 newstart newend)
     (setq pt (point-at-bol))
     (setq newstart (minimap-line-to-pos (- line ovheight)))
-    (while (< newstart winstart)
-      (scroll-down 5)
-      (redisplay t)
-      (setq winstart (window-start)))
+    (minimap-recenter line ovheight)
     (with-selected-window (get-buffer-window (buffer-base-buffer))
+      (goto-char pt)
       (set-window-start nil newstart)
       (setq newend (window-end)))
-    (while (> newend winend)
-      (scroll-up 5)
-      (redisplay t)
-      (setq winend (window-end)))
+    (when (eq minimap-recenter-type 'free)
+      (while (> newend winend)
+	(scroll-up 5)
+	(redisplay t)
+	(setq winend (window-end))))
     (move-overlay minimap-active-overlay newstart newend)))
+
  (defun minimap-line-to-pos (line)
   "Return point position of line number LINE."
   (save-excursion
@@ -315,6 +351,40 @@ When FORCE, enforce update of the active region."
 	(re-search-forward "[\n\C-m]" nil 'end (1- line))
       (forward-line (1- line)))
     (point)))
+
+(defun minimap-recenter (middle height)
+  "Recenter the minimap according to `minimap-recenter-type'.
+MIDDLE is the line number in the middle of the active region.
+HEIGHT is the number of lines from MIDDLE to begin/end of the
+active region."
+  (cond
+   ((eq minimap-recenter-type 'relative)
+    (if
+	;; Check if we're at the end of the buffer
+	(with-selected-window (get-buffer-window (buffer-base-buffer))
+	  (= (window-end) (point-max)))
+	(save-excursion
+	  (goto-char (point-max))
+	  (recenter -1))
+      (let* ((maxlines (line-number-at-pos (point-max)))
+	     percentage relpos newline start)
+	(setq percentage (/ (float middle) (float maxlines)))
+	(setq newline (ceiling (* percentage minimap-numlines)))
+	(setq start (- middle height
+		       (floor (* percentage
+				 (- minimap-numlines height height)))))
+	(or (> start (point-min))
+	    (setq start (point-min)))
+	(set-window-start nil (minimap-line-to-pos start)))))
+    ((eq minimap-recenter-type 'middle)
+     t)
+    ((eq minimap-recenter-type 'free)
+     (let ((newstart (minimap-line-to-pos (- middle height)))
+	   (winstart (window-start)))
+       (while (< newstart winstart)
+	 (scroll-down 5)
+	 (redisplay t)
+	 (setq winstart (window-start)))))))
 
 ;;; Minimap minor mode
 
