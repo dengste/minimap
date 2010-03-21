@@ -4,7 +4,7 @@
 
 ;; Author: David Engster <dengste@eml.cc>
 ;; Keywords:
-;; Version: 0.5
+;; Version: 0.6
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -150,6 +150,25 @@ specifies which overlay properties should be synced by
 include 'invisible', so that hidden text does not appear in the
 minimap buffer."
   :type '(repeat symbol)
+  :group 'minimap)
+
+(defcustom minimap-enlarge-certain-faces t
+  "Whether certain faces should be enlarged in the minimap.
+If this variable is non-nil, all faces listed in
+`minimap-normal-height-faces' will be displayed using the default
+font height, allowing you to still read text using those faces.
+By default, this should enlarge all function names in the
+minimap, given you have font locking enabled."
+  :type 'boolean
+  :group 'minimap)
+
+(defcustom minimap-normal-height-faces '(font-lock-function-name-face)
+  "List of faces which should be displayed with normal height.
+When `minimap-enlarge-certain-faces' is non-nil, all faces in
+this list will be displayed using the default font height.  By
+default, this list contains `font-lock-function-name-face', so
+you can still read function names in the minimap."
+  :type '(repeat face)
   :group 'minimap)
 
 ;;; Internal variables
@@ -440,7 +459,14 @@ active region."
 	  (setq baseov (cdr baseov)))
 	(move-overlay minimap-pointmin-overlay (point-min) (1+ (point-min)))
 	;; Re-apply font overlay
-	(move-overlay minimap-base-overlay (point-min) (point-max))))
+	(move-overlay minimap-base-overlay (point-min) (point-max)))
+      ;; Enlarge faces
+      (when minimap-enlarge-certain-faces
+	(when (and font-lock-mode
+		   (equal font-lock-support-mode 'jit-lock-mode))
+	  (jit-lock-fontify-now))
+	(with-current-buffer minimap-bufname
+	  (minimap-enlarge-faces))))
     (minimap-update t)))
 
 (defun minimap-get-sync-properties (ov)
@@ -455,6 +481,21 @@ You can specify those properties with
 		 (list p val)
 	       nil)))
 	 minimap-sync-overlay-properties)))
+
+(defun minimap-enlarge-faces ()
+  "Display all faces in `"
+  (let ((pos (next-single-property-change (point-min) 'face))
+	next ov face)
+    (while pos
+      (setq face (get-text-property pos 'face))
+      (when (delq nil (mapcar (lambda (x) (equal x face))
+			      minimap-normal-height-faces))
+	(setq ov
+	      (make-overlay pos
+			    (setq pos (next-single-property-change pos 'face))))
+	(overlay-put ov 'face `(:family ,(face-font 'default)))
+	(overlay-put ov 'priority 2))
+      (setq pos (next-single-property-change pos 'face)))))
 
 ;; outline-(minor-)mode
 (add-hook 'outline-view-change-hook 'minimap-sync-overlays)
