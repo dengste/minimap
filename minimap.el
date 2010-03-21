@@ -111,8 +111,9 @@ you drag the active region with the mouse.  The following
 explanations will probably not help much, so simply try them and
 choose the one which suits you best.
 
-`relative' -- The position of the active region corresponds with
-the relative position of point in the buffer.  This the default.
+`relative' -- The position of the active region in the minimap
+corresponds with the relative position of this region in the
+buffer.  This the default.
 
 `middle' -- The active region will stay fixed in the middle of
 the minimap.
@@ -385,8 +386,9 @@ active region."
 			       (- minimap-numlines height height))))))
        (if (< start 1)
 	   (progn
-	     ;; Hack: Emacs cannot scroll down any further, so we fake it
-	     ;; using an overlay.  Otherwise, active region would move to the top.
+	     ;; Hack: Emacs cannot scroll down any further, so we fake
+	     ;; it using an overlay.  Otherwise, the active region
+	     ;; would move to the top.
 	     (overlay-put minimap-pointmin-overlay
 			  'display (concat
 				    (make-string (abs start) 10)
