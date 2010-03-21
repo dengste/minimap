@@ -94,8 +94,17 @@ Can be either the symbol `left' or `right'."
   :group 'minimap)
 
 (defcustom minimap-update-delay 0.2
-  "Delay in seconds after which sidebar gets updated."
+  "Delay in seconds after which sidebar gets updated.
+Setting this to 0 will let the minimap react immediately, but
+this will slow down scrolling."
   :type 'number
+  :set (lambda (sym value)
+	 (set sym value)
+	 (when minimap-timer-object
+	   (cancel-timer minimap-timer-object)
+	   (setq minimap-timer-object
+		 (run-with-idle-timer
+		  minimap-update-delay t 'minimap-update))))
   :group 'minimap)
 
 (defcustom minimap-always-recenter nil
