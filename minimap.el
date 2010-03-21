@@ -161,6 +161,7 @@ minimap buffer."
 (defvar minimap-active-minimaps 0)
 (defvar minimap-base-overlay nil)
 (defvar minimap-numlines nil)
+(defvar minimap-pointmin-overlay nil)
 
 (make-variable-buffer-local 'minimap-start)
 (make-variable-buffer-local 'minimap-end)
@@ -168,6 +169,7 @@ minimap buffer."
 (make-variable-buffer-local 'minimap-bufname)
 (make-variable-buffer-local 'minimap-base-overlay)
 (make-variable-buffer-local 'minimap-numlines)
+(make-variable-buffer-local 'minimap-pointmin-overlay)
 
 ;;; Minimap creation / killing
 
@@ -215,6 +217,7 @@ minimap buffer."
     (switch-to-buffer indbuf)
     (setq minimap-base-overlay (make-overlay (point-min) (point-max) nil t t))
     (overlay-put minimap-base-overlay 'face 'minimap-font-face)
+    (setq minimap-pointmin-overlay (make-overlay (point-min) (1+ (point-min))))
     (setq minimap-start (window-start)
 	  minimap-end (window-end)
 	  minimap-active-overlay (make-overlay minimap-start minimap-end)
@@ -377,7 +380,25 @@ active region."
 	    (setq start (point-min)))
 	(set-window-start nil (minimap-line-to-pos start)))))
     ((eq minimap-recenter-type 'middle)
-     t)
+     (let ((start (- middle height
+		     (floor (* 0.5
+			       (- minimap-numlines height height))))))
+       (if (< start 1)
+	   (progn
+	     ;; Hack: Emacs cannot scroll down any further, so we fake it
+	     ;; using an overlay.  Otherwise, active region would move to the top.
+	     (overlay-put minimap-pointmin-overlay
+			  'display (concat
+				    (make-string (abs start) 10)
+				    (buffer-substring (point-min) (1+ (point-min)))))
+	     (overlay-put minimap-pointmin-overlay
+			  'face `(:background ,(face-background 'default)))
+	     (overlay-put minimap-pointmin-overlay
+			  'priority 1)
+	     (setq start 1))
+	 (overlay-put minimap-pointmin-overlay 'display "")
+	 (overlay-put minimap-pointmin-overlay 'face nil))
+       (set-window-start nil (minimap-line-to-pos start))))
     ((eq minimap-recenter-type 'free)
      (let ((newstart (minimap-line-to-pos (- middle height)))
 	   (winstart (window-start)))
@@ -415,6 +436,7 @@ active region."
 	      (overlay-put ov (car p) (cadr p))
 	      (setq props (cdr props))))
 	  (setq baseov (cdr baseov)))
+	(move-overlay minimap-pointmin-overlay (point-min) (1+ (point-min)))
 	;; Re-apply font overlay
 	(move-overlay minimap-base-overlay (point-min) (point-max))))
     (minimap-update t)))
