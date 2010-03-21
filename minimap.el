@@ -93,7 +93,7 @@ Can be either the symbol `left' or `right'."
   :type 'string
   :group 'minimap)
 
-(defcustom minimap-update-delay 0.5
+(defcustom minimap-update-delay 0.2
   "Delay in seconds after which sidebar gets updated."
   :type 'number
   :group 'minimap)
