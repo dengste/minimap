@@ -358,6 +358,7 @@ When FORCE, enforce update of the active region."
     (with-selected-window (get-buffer-window (buffer-base-buffer))
       (goto-char pt)
       (set-window-start nil newstart)
+      (redisplay t)
       (setq newend (window-end)))
     (when (eq minimap-recenter-type 'free)
       (while (> newend winend)
