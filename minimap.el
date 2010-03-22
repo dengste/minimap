@@ -493,7 +493,7 @@ You can specify those properties with
 	 minimap-sync-overlay-properties)))
 
 (defun minimap-enlarge-faces ()
-  "Display all faces in `"
+  "Apply default font to all faces in `minimap-normal-height-faces'."
   (let ((pos (next-single-property-change (point-min) 'face))
 	next ov face)
     (while pos
