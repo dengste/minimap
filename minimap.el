@@ -4,7 +4,7 @@
 
 ;; Author: David Engster <dengste@eml.cc>
 ;; Keywords:
-;; Version: 0.6
+;; Version: 0.6.1
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -100,7 +100,8 @@ this will slow down scrolling."
   :type 'number
   :set (lambda (sym value)
 	 (set sym value)
-	 (when minimap-timer-object
+	 (when (and (boundp 'minimap-timer-object)
+		    minimap-timer-object)
 	   (cancel-timer minimap-timer-object)
 	   (setq minimap-timer-object
 		 (run-with-idle-timer
