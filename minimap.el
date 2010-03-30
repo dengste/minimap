@@ -80,30 +80,30 @@ By default, this is only a different background color."
   '((((background dark))
      (:box (:line-width 1 :color "white")
 	   :inherit (font-lock-function-name-face minimap-font-face)
-	   :height 80 :background "gray10"))
+	   :height 2.5 :background "gray10"))
     (t (:box (:line-width 1 :color "black")
 	     :inherit (font-lock-function-name-face minimap-font-face)
-	     :height 80 :background "gray90")))
+	     :height 2.5 :background "gray90")))
   "Face used for functions in the semantic overlay.")
 
 (defface minimap-semantic-variable-face
   '((((background dark))
      (:box (:line-width 1 :color "white")
 	   :inherit (font-lock-variable-name-face minimap-font-face)
-	   :height 80 :background "gray10"))
+	    :height 2.5 :background "gray10"))
     (t (:box (:line-width 1 :color "black")
 	     :inherit (font-lock-function-name-face minimap-font-face)
-	     :height 80 :background "gray90")))
+	     :height 2.5 :background "gray90")))
   "Face used for variables in the semantic overlay.")
 
 (defface minimap-semantic-type-face
   '((((background dark))
      (:box (:line-width 1 :color "white")
 	   :inherit (font-lock-type-face minimap-font-face)
-	   :height 80 :background "gray10"))
+	   :height 2.5 :background "gray10"))
     (t (:box (:line-width 1 :color "black")
 	     :inherit (font-lock-function-name-face minimap-font-face)
-	     :height 80 :background "gray90")))
+	     :height 2.5 :background "gray90")))
   "Face used for types in the semantic overlay.")
 
 (defcustom minimap-width-fraction 0.2
