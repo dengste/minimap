@@ -388,9 +388,10 @@ When FORCE, enforce update of the active region."
 	   (start-point (posn-point end-posn))
 	   (make-cursor-line-fully-visible nil)
 	   (cursor-type nil)
-	   (pcselmode pc-selection-mode)
+	   (pcselmode (when (boundp 'pc-selection-mode)
+			pc-selection-mode))
            pt ev)
-      (when pcselmode
+      (when (and pcselmode (fboundp 'pc-selection-mode))
 	(pc-selection-mode -1))
       (move-overlay minimap-active-overlay start-point minimap-end)
       (track-mouse
@@ -403,7 +404,7 @@ When FORCE, enforce update of the active region."
 	    (minimap-set-overlay pt))))
       (select-window (get-buffer-window (buffer-base-buffer)))
       (minimap-update)
-      (when pcselmode
+      (when (and pcselmode (fboundp 'pc-selection-mode))
 	(pc-selection-mode 1)))))
 
 (defun minimap-set-overlay (pt)
