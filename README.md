@@ -14,5 +14,5 @@ needs.
 
 ### Before you make a pull request:
 
-This package is part of GNU ELPA, so any non-trivial change needs a
-signed copyright assignment with the FSF for GNU Emacs.
+This package is part of GNU ELPA, so anyone making a non-trivial
+change needs a signed copyright assignment with the FSF for GNU Emacs.
