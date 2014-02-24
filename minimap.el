@@ -330,7 +330,7 @@ when you enter a buffer which is not derived from
     (switch-to-buffer
      (get-buffer-create minimap-buffer-name) t t)
     ;; Do not fold lines in the minimap.
-    (toggle-truncate-lines 1)
+    (setq truncate-lines t)
     ;; Make it dedicated.
     (when minimap-dedicated-window
       (set-window-dedicated-p nil t))
@@ -408,7 +408,7 @@ Re-use already existing minimap window if possible."
       (minimap-kill-buffer)
       (rename-buffer minimap-buffer-name)
       ;; Do not fold lines in the minimap.
-      (toggle-truncate-lines 1)
+      (setq truncate-lines t)
       (when minimap-dedicated-window
 	(set-window-dedicated-p nil t))
       (setq minimap-base-overlay (make-overlay (point-min) (point-max) nil t t))
