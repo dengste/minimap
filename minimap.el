@@ -4,7 +4,7 @@
 
 ;; Author: David Engster <deng@randomsample.de>
 ;; Keywords:
-;; Version: 1.1
+;; Version: 1.2
 
 ;; This file is part of GNU Emacs.
 
@@ -49,7 +49,18 @@
 
 
 ;;; News:
-
+;;
+;;;; Changes since v1.1:
+;;
+;; - Change some defaults: better colors, reduced update delay.
+;; - `minimap-tag-only': New experimental feature to only display an
+;;   'abstract view' of the buffer with overlays generated from
+;;   Semantic information.  Works only for buffers parsed by Semantic.
+;; - `minimap-highlight-line': Highlight current line in Minimap.
+;; - Fix autoloads.
+;; - Display lines denoting beginning/end of functions in Semantic
+;;   overlays.
+;;
 ;;;; Changes since v1.0:
 ;;
 ;; - Largely rewritten as a minor mode; use M-x minimap-mode to
@@ -66,8 +77,6 @@
 ;; - Semantic overlays will be automatically updated during editing.
 ;; - Lots of bug fixes.
 
-;;; Customizable variables:
-
 (defgroup minimap nil
   "A minimap sidebar for Emacs."
   :group 'convenience)
@@ -81,7 +90,7 @@ recreate the minimap to avoid problems with recentering."
   :group 'minimap)
 
 (defface minimap-active-region-background
-  '((((background dark)) (:background "#4517305D0000"))
+  '((((background dark)) (:background "#700000"))
     (t (:background "#C847D8FEFFFF")))
   "Face for the active region in the minimap.
 By default, this is only a different background color."
@@ -91,7 +100,7 @@ By default, this is only a different background color."
   '((((background dark))
      (:box (:line-width 1 :color "white")
 	   :inherit (font-lock-function-name-face minimap-font-face)
-	   :height 2.75 :background "gray10"))
+	   :height 2.75 :background "#202414"))
     (t (:box (:line-width 1 :color "black")
 	     :inherit (font-lock-function-name-face minimap-font-face)
 	     :height 2.75 :background "gray90")))
@@ -140,7 +149,7 @@ Can be either the symbol `left' or `right'."
   :type 'string
   :group 'minimap)
 
-(defcustom minimap-update-delay 0.2
+(defcustom minimap-update-delay 0.1
   "Delay in seconds after which sidebar gets updated.
 Setting this to 0 will let the minimap react immediately, but
 this will slow down scrolling."
@@ -272,6 +281,16 @@ when you enter a buffer which is not derived from
   :type 'boolean
   :group 'minimap)
 
+(defcustom minimap-tag-only nil
+  "Whether the minimap should only display parsed tags from CEDET."
+  :type 'boolean
+  :group 'minimap)
+
+(defcustom minimap-highlight-line t
+  "Whether the minimap should highlight the current line."
+  :type 'boolean
+  :group 'minimap)
+
 ;;; Internal variables
 
 ;; The buffer currently displayed in the minimap
@@ -288,6 +307,9 @@ when you enter a buffer which is not derived from
 ;; Lines the minimap can display
 (defvar minimap-numlines nil)
 (defvar minimap-pointmin-overlay nil)
+;; Line overlay
+(defvar minimap-line-overlay nil)
+
 
 ;;; Helpers
 
@@ -354,6 +376,7 @@ If REMOVE is non-nil, remove minimap from other modes."
 
 ;;; Minimap creation / killing
 
+;;;###autoload
 (define-minor-mode minimap-mode
   "Toggle minimap mode."
   :global t
@@ -376,7 +399,6 @@ If REMOVE is non-nil, remove minimap from other modes."
     (minimap-kill)
     (minimap-setup-hooks t)))
 
-;;;###autoload
 (defun minimap-create ()
   "Create a minimap sidebar."
   (interactive)
@@ -414,6 +436,10 @@ Re-use already existing minimap window if possible."
       (setq minimap-base-overlay (make-overlay (point-min) (point-max) nil t t))
       (overlay-put minimap-base-overlay 'face 'minimap-font-face)
       (overlay-put minimap-base-overlay 'priority 1)
+      (when minimap-tag-only
+	(overlay-put minimap-base-overlay 'face
+      		     `(:inherit minimap-font-face
+				:foreground ,(face-background 'default))))
       (setq minimap-pointmin-overlay (make-overlay (point-min) (1+ (point-min))))
       (setq minimap-start (window-start)
 	    minimap-end (window-end)
@@ -421,6 +447,10 @@ Re-use already existing minimap window if possible."
 	    line-spacing 0)
       (overlay-put minimap-active-overlay 'face
 		   'minimap-active-region-background)
+      (when minimap-tag-only
+	(overlay-put minimap-active-overlay 'face
+		     `(:inherit 'minimap-active-region-background
+			       :foreground ,(face-background 'minimap-active-region-background))))
       (overlay-put minimap-active-overlay 'priority 5)
       (minimap-sb-mode 1)
       (when (and (boundp 'linum-mode)
@@ -435,7 +465,6 @@ Re-use already existing minimap window if possible."
 	      (car (progn (redisplay t) (window-line-height)))))))
     (minimap-sync-overlays)))
 
-;;;###autoload
 (defun minimap-kill ()
   "Kill minimap."
   (interactive)
@@ -486,6 +515,12 @@ When FORCE, enforce update of the active region."
 				      (line-number-at-pos start))
 				   2)))
 	    (goto-char pt)
+	    (beginning-of-line)
+	    (unless minimap-line-overlay
+	      (setq minimap-line-overlay (make-overlay (point) (1+ (point)) nil t))
+	      (overlay-put minimap-line-overlay 'face '(:background "yellow" :foreground "yellow"))
+	      (overlay-put minimap-line-overlay 'priority 6))
+	    (move-overlay minimap-line-overlay (point) (line-beginning-position 2))
 	    (when minimap-always-recenter
 	      (recenter (round (/ (window-height) 2)))))
 	  ;; Redisplay
@@ -540,7 +575,9 @@ When FORCE, enforce update of the active region."
 		(eq (car ev) 'mouse-movement))
 	  (setq pt (posn-point (event-start ev)))
 	  (when (numberp pt)
-	    (minimap-set-overlay pt))))
+	    (goto-char pt)
+	    (beginning-of-line)
+	    (minimap-set-overlay (point)))))
       (select-window (get-buffer-window (buffer-base-buffer)))
       (minimap-update)
       (when (and pcselmode (fboundp 'pc-selection-mode))
@@ -708,14 +745,17 @@ Apply semantic overlays or face enlargement if necessary."
   "Get properties from overlay OV which should be synced.
 You can specify those properties with
 `minimap-sync-overlay-properties'."
-  (delq nil
-	(mapcar
-	 (lambda (p)
-	   (let ((val (overlay-get ov p)))
-	     (if val
-		 (list p val)
-	       nil)))
-	 minimap-sync-overlay-properties)))
+  (let ((syncprops minimap-sync-overlay-properties))
+    (when minimap-tag-only
+      (setq syncprops (delq 'face syncprops)))
+    (delq nil
+	  (mapcar
+	   (lambda (p)
+	     (let ((val (overlay-get ov p)))
+	       (if val
+		   (list p val)
+		 nil)))
+	   syncprops))))
 
 (defun minimap-enlarge-faces ()
   "Apply default font to all faces in `minimap-normal-height-faces'."
@@ -751,22 +791,48 @@ TAGS is the list of tags.  If it is t, fetch tags from buffer."
 			 (eq class 'type)
 			 (eq class 'variable)))
 	    (with-current-buffer minimap-buffer-name
-	      (let ((start (overlay-start ov))
-		    (end (overlay-end ov))
-		    (name (semantic-tag-name tag)))
+	      (let* ((start (overlay-start ov))
+		     (end (overlay-end ov))
+		     (name (semantic-tag-name tag))
+		     (lstart (line-number-at-pos start))
+		     (lend (line-number-at-pos end)))
 		;; First, remove old Semantic overlays.
 		(remove-overlays start end 'minimap-semantic t)
-		;; Now put the new ones.
-		(overlay-put
-		 (setq ovnew (make-overlay start end))
-		 'face `(:background ,(face-background
-				       (intern (format "minimap-semantic-%s-face"
-						       (symbol-name class))))))
-		(overlay-put ovnew 'priority 1)
-		(overlay-put ovnew 'minimap-semantic t)
+	        (if minimap-tag-only
+		    ;; Now put the new ones.
+		    (overlay-put
+		     (setq ovnew (make-overlay start end))
+		     'face `(:background ,(face-background
+					   (intern (format "minimap-semantic-%s-face"
+							   (symbol-name class))))
+					 :foreground
+					 ,(face-background
+					   (intern (format "minimap-semantic-%s-face"
+							   (symbol-name class))))
+					 ))
+		  		    ;; Now put the new ones.
+		    (overlay-put
+		     (setq ovnew (make-overlay start end))
+		     'face `(:background ,(face-background
+					   (intern (format "minimap-semantic-%s-face"
+							   (symbol-name class)))))))
+		(overlay-put ovnew 'priority 4)
+		(when (and (eq class 'function)
+			   (> (- lend lstart) 5))
+		  (overlay-put ovnew 'priority 1)
+		  (overlay-put ovnew 'minimap-semantic t)
+		  (overlay-put (setq ovnew (make-overlay start (progn (goto-char start) (point-at-eol))))
+			       'display (make-string 200 ?\u203E))
+		  (overlay-put ovnew 'minimap-semantic t)
+		  (overlay-put ovnew 'face `(:foreground ,(face-foreground 'default) :overline nil))
+		  (overlay-put ovnew 'priority 8)
+		  (overlay-put (setq ovnew (make-overlay (progn (goto-char end) (point-at-bol)) end))
+			       'display (make-string 200 ?_))
+		  (overlay-put ovnew 'face `(:foreground ,(face-foreground 'default)))
+		  (overlay-put ovnew 'minimap-semantic t)
+		  (overlay-put ovnew 'priority 8))
 		(setq start
-		      (minimap-line-to-pos (/ (+ (line-number-at-pos start)
-						 (line-number-at-pos end)) 2)))
+		      (minimap-line-to-pos (/ (+ lstart lend) 2)))
 		(goto-char start)
 		(while (looking-at "^$")
 		  (forward-line -1))
@@ -776,8 +842,11 @@ TAGS is the list of tags.  If it is t, fetch tags from buffer."
 		(overlay-put ovnew 'face (format "minimap-semantic-%s-face"
 						 (symbol-name class)))
 		(overlay-put ovnew 'display (concat "  " name "  "))
-		(overlay-put ovnew 'priority 6)
-		(overlay-put ovnew 'minimap-semantic t))))
+		(overlay-put ovnew 'priority 7)
+		(overlay-put ovnew 'minimap-semantic t)
+
+
+		)))
 	  (setq tags (cdr tags)))))))
 
 (provide 'minimap)
