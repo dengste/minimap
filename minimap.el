@@ -516,11 +516,13 @@ When FORCE, enforce update of the active region."
 				   2)))
 	    (goto-char pt)
 	    (beginning-of-line)
-	    (unless minimap-line-overlay
-	      (setq minimap-line-overlay (make-overlay (point) (1+ (point)) nil t))
-	      (overlay-put minimap-line-overlay 'face '(:background "yellow" :foreground "yellow"))
-	      (overlay-put minimap-line-overlay 'priority 6))
-	    (move-overlay minimap-line-overlay (point) (line-beginning-position 2))
+	    (when minimap-highlight-line
+	      (unless minimap-line-overlay
+		(setq minimap-line-overlay (make-overlay (point) (1+ (point)) nil t))
+		(overlay-put minimap-line-overlay 'face '(:background "yellow" :foreground "yellow"))
+		(overlay-put minimap-line-overlay 'priority 6))
+	      (move-overlay minimap-line-overlay (point) (line-beginning-position 2))
+	      )
 	    (when minimap-always-recenter
 	      (recenter (round (/ (window-height) 2)))))
 	  ;; Redisplay
