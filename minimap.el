@@ -358,7 +358,7 @@ when you enter a buffer which is not derived from
       (set-window-dedicated-p nil t))
     (prog1
 	(selected-window)
-      (other-window 1))))
+      (other-window -1))))
 
 (defun minimap-setup-hooks (&optional remove)
   "Hook minimap into other modes.
