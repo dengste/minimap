@@ -436,6 +436,10 @@ Re-use already existing minimap window if possible."
       (setq minimap-base-overlay (make-overlay (point-min) (point-max) nil t t))
       (overlay-put minimap-base-overlay 'face 'minimap-font-face)
       (overlay-put minimap-base-overlay 'priority 1)
+      ;; Add the hand mouse pointer to visible text. It doesn’t seem
+      ;; possible to set the mouse cursor when there’s no text. See
+      ;; `void-text-area-pointer'.
+      (overlay-put minimap-base-overlay 'pointer 'hand)
       (when minimap-tag-only
 	(overlay-put minimap-base-overlay 'face
       		     `(:inherit minimap-font-face
