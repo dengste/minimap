@@ -89,6 +89,13 @@ TrueType font for this.  After changing this, you should
 recreate the minimap to avoid problems with recentering."
   :group 'minimap)
 
+(defface minimap-current-line-face
+  '((((background dark)) (:background "yellow" :foreground "yellow"))
+    (t (:background "yellow" :foreground "yellow")))
+  "Face for the current line in the minimap.
+By default, both foreground and background are yellow."
+  :group 'minimap)
+
 (defface minimap-active-region-background
   '((((background dark)) (:background "#700000"))
     (t (:background "#C847D8FEFFFF")))
@@ -146,16 +153,6 @@ Can be either the symbol `left' or `right'."
 
 (defcustom minimap-buffer-name " *MINIMAP*"
   "Buffer name of minimap sidebar."
-  :type 'string
-  :group 'minimap)
-
-(defcustom minimap-current-line-foreground "yellow"
-  "Foreground color of current line in minimap."
-  :type 'string
-  :group 'minimap)
-
-(defcustom minimap-current-line-background "yellow"
-  "Background color of current line in minimap."
   :type 'string
   :group 'minimap)
 
@@ -533,8 +530,8 @@ When FORCE, enforce update of the active region."
 	    (when minimap-highlight-line
 	      (unless minimap-line-overlay
 		(setq minimap-line-overlay (make-overlay (point) (1+ (point)) nil t))
-		(overlay-put minimap-line-overlay 'face `(:background ,minimap-current-line-background :foreground ,minimap-current-line-foreground))
 		(overlay-put minimap-line-overlay 'priority 6))
+	      (overlay-put minimap-line-overlay 'face `(:background ,(face-background 'minimap-current-line-face) :foreground ,(face-foreground 'minimap-current-line-face)))
 	      (move-overlay minimap-line-overlay (point) (line-beginning-position 2))
 	      )
 	    (when minimap-always-recenter
