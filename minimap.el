@@ -149,6 +149,16 @@ Can be either the symbol `left' or `right'."
   :type 'string
   :group 'minimap)
 
+(defcustom minimap-current-line-foreground "yellow"
+  "Foreground color of current line in minimap."
+  :type 'string
+  :group 'minimap)
+
+(defcustom minimap-current-line-background "yellow"
+  "Background color of current line in minimap."
+  :type 'string
+  :group 'minimap)
+
 (defcustom minimap-update-delay 0.1
   "Delay in seconds after which sidebar gets updated.
 Setting this to 0 will let the minimap react immediately, but
@@ -523,7 +533,7 @@ When FORCE, enforce update of the active region."
 	    (when minimap-highlight-line
 	      (unless minimap-line-overlay
 		(setq minimap-line-overlay (make-overlay (point) (1+ (point)) nil t))
-		(overlay-put minimap-line-overlay 'face '(:background "yellow" :foreground "yellow"))
+		(overlay-put minimap-line-overlay 'face `(:background ,minimap-current-line-background :foreground ,minimap-current-line-foreground))
 		(overlay-put minimap-line-overlay 'priority 6))
 	      (move-overlay minimap-line-overlay (point) (line-beginning-position 2))
 	      )
