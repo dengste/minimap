@@ -382,12 +382,14 @@ If REMOVE is non-nil, remove minimap from other modes."
       (progn
 	(remove-hook 'outline-view-change-hook 'minimap-sync-overlays)
 	(remove-hook 'hs-hide-hook 'minimap-sync-overlays)
-	(remove-hook 'hs-show-hook 'minimap-sync-overlays))
+	(remove-hook 'hs-show-hook 'minimap-sync-overlays)
+	(remove-hook 'flycheck-after-syntax-check-hook 'minimap-sync-overlays))
     ;; outline-(minor-)mode
     (add-hook 'outline-view-change-hook 'minimap-sync-overlays)
     ;; hideshow
     (add-hook 'hs-hide-hook 'minimap-sync-overlays)
-    (add-hook 'hs-show-hook 'minimap-sync-overlays)))
+    (add-hook 'hs-show-hook 'minimap-sync-overlays)
+    (add-hook 'flycheck-after-syntax-check-hook 'minimap-sync-overlays)))
 
 ;;; Minimap creation / killing
 
