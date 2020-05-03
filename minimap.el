@@ -104,8 +104,8 @@ By default, both foreground and background are yellow."
   :group 'minimap)
 
 (defface minimap-active-region-background
-  '((((background dark)) (:background "#700000"))
-    (t (:background "#C847D8FEFFFF")))
+  '((((background dark)) (:background "#700000" :extend t))
+    (t (:background "#C847D8FEFFFF" :extend t)))
   "Face for the active region in the minimap.
 By default, this is only a different background color."
   :group 'minimap)
