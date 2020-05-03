@@ -303,6 +303,11 @@ when you enter a buffer which is not derived from
   :type 'boolen
   :group 'minimap)
 
+(defcustom minimap-hide-cursor t
+  "Whether to hide the cursor in the minimap window."
+  :type 'boolen
+  :group 'minimap)
+
 ;;; Internal variables
 
 ;; The buffer currently displayed in the minimap
@@ -469,6 +474,8 @@ Re-use already existing minimap window if possible."
       (minimap-sb-mode 1)
       (when minimap-disable-mode-line
 	(setq mode-line-format nil))
+      (when minimap-hide-cursor
+	(setq cursor-type nil))
       (when minimap-hide-fringes
 	(set-window-fringes nil 0 0))
       (when (and (boundp 'linum-mode)
