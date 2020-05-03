@@ -765,7 +765,9 @@ Apply semantic overlays or face enlargement if necessary."
 			    (or (not minimap-display-semantic-overlays)
 				(not semantic)))))
 	  (when (eq font-lock-support-mode 'jit-lock-mode)
-	    (jit-lock-fontify-now))
+	    (condition-case nil
+		(jit-lock-fontify-now)
+	      (error nil)))
 	  (minimap-enlarge-faces))
 	;; Semantic overlays
 	(when (and semantic
