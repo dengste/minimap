@@ -358,8 +358,6 @@ when you enter a buffer which is not derived from
     ;; Hide things.
     (when minimap-hide-scroll-bar
       (setq vertical-scroll-bar nil))
-    (when minimap-hide-fringes
-      (set-window-fringes nil 0 0))
     ;; Switch to buffer.
     (switch-to-buffer
      (get-buffer-create minimap-buffer-name) t t)
@@ -471,6 +469,8 @@ Re-use already existing minimap window if possible."
       (minimap-sb-mode 1)
       (when minimap-disable-mode-line
 	(setq mode-line-format nil))
+      (when minimap-hide-fringes
+	(set-window-fringes nil 0 0))
       (when (and (boundp 'linum-mode)
 		 linum-mode)
 	(linum-mode 0))
@@ -514,6 +514,8 @@ When FORCE, enforce update of the active region."
 	      (when (window-dedicated-p)
 		(set-window-dedicated-p nil nil))
 	      (switch-to-buffer minimap-buffer-name t t)
+	      (when minimap-hide-fringes
+		(set-window-fringes nil 0 0))
 	      (when minimap-dedicated-window
 		(set-window-dedicated-p nil t))))
 	  (with-selected-window win
