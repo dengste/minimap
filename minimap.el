@@ -298,6 +298,11 @@ when you enter a buffer which is not derived from
   :type 'boolean
   :group 'minimap)
 
+(defcustom minimap-disable-mode-line t
+  "Whether to disable the mode-line in the minimap window."
+  :type 'boolen
+  :group 'minimap)
+
 ;;; Internal variables
 
 ;; The buffer currently displayed in the minimap
@@ -464,6 +469,8 @@ Re-use already existing minimap window if possible."
 			       :foreground ,(face-background 'minimap-active-region-background))))
       (overlay-put minimap-active-overlay 'priority 5)
       (minimap-sb-mode 1)
+      (when minimap-disable-mode-line
+	(setq mode-line-format nil))
       (when (and (boundp 'linum-mode)
 		 linum-mode)
 	(linum-mode 0))
