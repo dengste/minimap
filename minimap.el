@@ -77,6 +77,13 @@
 ;; - Semantic overlays will be automatically updated during editing.
 ;; - Lots of bug fixes.
 
+;; Silence byte compiler
+(declare-function semantic-active-p "semantic/fw")
+(declare-function semantic-fetch-tags "semantic")
+(declare-function semantic-tag-class "semantic/tag")
+(declare-function semantic-tag-overlay "semantic/tag")
+(declare-function semantic-tag-name "semantic/tag")
+
 (defgroup minimap nil
   "A minimap sidebar for Emacs."
   :group 'convenience)
