@@ -593,9 +593,7 @@ When FORCE, enforce update of the active region."
       (when minimap-highlight-line
 	(minimap-highlight-line))
       (when minimap-always-recenter
-	(recenter (round (/ (window-height) 2)))))
-    ;; Redisplay
-    (sit-for 0)))
+	(recenter (round (/ (window-height) 2)))))))
 
 (defun minimap-highlight-line ()
   "Highlight current line in the minimap."
