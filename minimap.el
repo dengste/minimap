@@ -360,7 +360,15 @@ when you enter a buffer which is not derived from
     (when (< width minimap-minimum-width)
       (setq width minimap-minimum-width))
     (if (eq minimap-window-location 'left)
-	(split-window-horizontally width)
+	;; The existing window becomes the minimap
+	(let ((new-window
+	       (split-window-horizontally width)))
+	  ;; Restore prev/next buffers in the new window
+	  (set-window-next-buffers new-window
+				   (window-next-buffers))
+	  (set-window-prev-buffers new-window
+				   (window-prev-buffers)))
+      ;; The new window is the minimap
       (split-window-horizontally
        (* -1 width))
       (other-window 1))
