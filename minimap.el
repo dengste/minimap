@@ -356,22 +356,23 @@ when you enter a buffer which is not derived from
 
 (defun minimap-create-window ()
   (let ((width (round (* (window-width)
-			 minimap-width-fraction))))
+			 minimap-width-fraction)))
+	buffer-window)
     (when (< width minimap-minimum-width)
       (setq width minimap-minimum-width))
     (if (eq minimap-window-location 'left)
 	;; The existing window becomes the minimap
-	(let ((new-window
-	       (split-window-horizontally width)))
+	(progn
+	  (setq buffer-window (split-window-horizontally width))
 	  ;; Restore prev/next buffers in the new window
-	  (set-window-next-buffers new-window
+	  (set-window-next-buffers buffer-window
 				   (window-next-buffers))
-	  (set-window-prev-buffers new-window
+	  (set-window-prev-buffers buffer-window
 				   (window-prev-buffers)))
       ;; The new window is the minimap
-      (split-window-horizontally
-       (* -1 width))
-      (other-window 1))
+      (setq buffer-window (selected-window))
+      (select-window (split-window-horizontally
+		      (* -1 width))))
     ;; Set up the minimap window:
     ;; You should not be able to enter the minimap window.
     (set-window-parameter nil 'no-other-window t)
@@ -383,9 +384,11 @@ when you enter a buffer which is not derived from
     ;; Make it dedicated.
     (when minimap-dedicated-window
       (set-window-dedicated-p nil t))
+    ;; Return minimap window, but make sure we select the window where
+    ;; the buffer is in.
     (prog1
 	(selected-window)
-      (other-window -1))))
+      (select-window buffer-window))))
 
 (defun minimap-setup-hooks (&optional remove)
   "Hook minimap into other modes.
