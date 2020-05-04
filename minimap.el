@@ -367,9 +367,6 @@ when you enter a buffer which is not derived from
     ;; Set up the minimap window:
     ;; You should not be able to enter the minimap window.
     (set-window-parameter nil 'no-other-window t)
-    ;; Hide things.
-    (when minimap-hide-scroll-bar
-      (setq vertical-scroll-bar nil))
     ;; Switch to buffer.
     (switch-to-buffer
      (get-buffer-create minimap-buffer-name) t t)
@@ -485,6 +482,9 @@ Re-use already existing minimap window if possible."
 	(setq mode-line-format nil))
       (when minimap-hide-cursor
 	(setq cursor-type nil))
+      (when minimap-hide-scroll-bar
+	(setq vertical-scroll-bar nil)
+	(set-window-buffer nil (current-buffer)))
       (when minimap-hide-fringes
 	(set-window-fringes nil 0 0))
       (when (and (boundp 'linum-mode)
