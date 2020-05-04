@@ -528,52 +528,7 @@ When FORCE, enforce update of the active region."
   (unless (active-minibuffer-window)
     (if (minimap-active-current-buffer-p)
 	;; We are still in the same buffer, so just update the minimap.
-	(let ((win (minimap-get-window))
-	      (start (window-start))
-	      (end (window-end))
-	      (pt (point)))
-	  (when (and (null win)
-		     minimap-recreate-window)
-	    ;; The minimap window is no longer visible, so create it again...
-	    (setq win (minimap-create-window))
-	    ;; ...and switch to existing minimap buffer.
-	    (with-selected-window win
-	      (when (window-dedicated-p)
-		(set-window-dedicated-p nil nil))
-	      (switch-to-buffer minimap-buffer-name t t)
-	      (when minimap-hide-fringes
-		(set-window-fringes nil 0 0))
-	      (when minimap-dedicated-window
-		(set-window-dedicated-p nil t))))
-	  (with-selected-window win
-	    ;; Make sure the base overlay spans the whole buffer.
-	    (unless (and (= (overlay-start minimap-base-overlay) (point-min))
-			 (= (overlay-end minimap-base-overlay) (point-max)))
-	      (move-overlay minimap-base-overlay (point-min) (point-max)))
-	    (unless (and (not force)
-			 (= minimap-start start)
-			 (= minimap-end end))
-	      ;; Update the overlay.
-	      (move-overlay minimap-active-overlay start end)
-	      (setq minimap-start start
-		    minimap-end end)
-	      (minimap-recenter (line-number-at-pos (/ (+ end start) 2))
-				(/ (- (line-number-at-pos end)
-				      (line-number-at-pos start))
-				   2)))
-	    (goto-char pt)
-	    (beginning-of-line)
-	    (when minimap-highlight-line
-	      (unless minimap-line-overlay
-		(setq minimap-line-overlay (make-overlay (point) (1+ (point)) nil t))
-		(overlay-put minimap-line-overlay 'priority 6))
-	      (overlay-put minimap-line-overlay 'face `(:background ,(face-background 'minimap-current-line-face) :foreground ,(face-foreground 'minimap-current-line-face)))
-	      (move-overlay minimap-line-overlay (point) (line-beginning-position 2))
-	      )
-	    (when minimap-always-recenter
-	      (recenter (round (/ (window-height) 2)))))
-	  ;; Redisplay
-	  (sit-for 0))
+	(minimap-update-current-buffer force)
       ;; The buffer was switched, check if the minimap should switch, too.
       (if (and minimap-major-modes
 	       (apply 'derived-mode-p minimap-major-modes))
@@ -597,6 +552,61 @@ When FORCE, enforce update of the active region."
 			    (when (and (null (minimap-active-current-buffer-p))
 				       (minimap-get-window))
 			      (delete-window (minimap-get-window))))))))))
+
+(defun minimap-update-current-buffer (force)
+  "Update minimap for the current buffer."
+  (let ((win (minimap-get-window))
+	(start (window-start))
+	(end (window-end))
+	(pt (point)))
+    (when (and (null win)
+	       minimap-recreate-window)
+      ;; The minimap window is no longer visible, so create it again...
+      (setq win (minimap-create-window))
+      ;; ...and switch to existing minimap buffer.
+      (with-selected-window win
+	(when (window-dedicated-p)
+	  (set-window-dedicated-p nil nil))
+	(switch-to-buffer minimap-buffer-name t t)
+	(when minimap-hide-fringes
+	  (set-window-fringes nil 0 0))
+	(when minimap-dedicated-window
+	  (set-window-dedicated-p nil t))))
+    (with-selected-window win
+      ;; Make sure the base overlay spans the whole buffer.
+      (unless (and (= (overlay-start minimap-base-overlay) (point-min))
+		   (= (overlay-end minimap-base-overlay) (point-max)))
+	(move-overlay minimap-base-overlay (point-min) (point-max)))
+      (unless (and (not force)
+		   (= minimap-start start)
+		   (= minimap-end end))
+	;; Update the overlay.
+	(move-overlay minimap-active-overlay start end)
+	(setq minimap-start start
+	      minimap-end end)
+	(minimap-recenter (line-number-at-pos (/ (+ end start) 2))
+			  (/ (- (line-number-at-pos end)
+				(line-number-at-pos start))
+			     2)))
+      (goto-char pt)
+      (beginning-of-line)
+      (when minimap-highlight-line
+	(minimap-highlight-line))
+      (when minimap-always-recenter
+	(recenter (round (/ (window-height) 2)))))
+    ;; Redisplay
+    (sit-for 0)))
+
+(defun minimap-highlight-line ()
+  "Highlight current line in the minimap."
+  (unless minimap-line-overlay
+    (setq minimap-line-overlay (make-overlay (point) (1+ (point)) nil t))
+    (overlay-put minimap-line-overlay 'priority 6))
+  (overlay-put
+   minimap-line-overlay 'face
+   `(:background ,(face-background 'minimap-current-line-face)
+		 :foreground ,(face-foreground 'minimap-current-line-face)))
+  (move-overlay minimap-line-overlay (point) (line-beginning-position 2)))
 
 ;;; Overlay movement
 
