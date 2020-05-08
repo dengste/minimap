@@ -12,6 +12,8 @@ Simply use M-x minimap-mode to toggle activation of the minimap.
 Use 'M-x customize-group RET minimap RET' to adapt minimap to your
 needs.
 
+[Screenshot](minimap.png)
+
 ### Before you make a pull request:
 
 This package is part of GNU ELPA, so anyone making a non-trivial
