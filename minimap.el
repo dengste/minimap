@@ -97,8 +97,8 @@ recreate the minimap to avoid problems with recentering."
   :group 'minimap)
 
 (defface minimap-current-line-face
-  '((((background dark)) (:background "yellow" :foreground "yellow"))
-    (t (:background "yellow" :foreground "yellow")))
+  '((((background dark)) (:background "dark gray"))
+    (t (:background "dark gray")))
   "Face for the current line in the minimap.
 By default, both foreground and background are yellow."
   :group 'minimap)
