@@ -8,9 +8,15 @@ active region with the mouse, which will scroll the corresponding
 edit buffer.  Additionally, you can overlay information from the
 tags gathered by CEDET's semantic analyzer.
 
-Simply use M-x minimap-mode to toggle activation of the minimap.
-Use 'M-x customize-group RET minimap RET' to adapt minimap to your
-needs.
+Installation: This package is in GNU ELPA. Do
+
+    M-x list-packages
+
+and search for 'minimap'.
+
+After installation, simply use M-x minimap-mode to toggle activation
+of the minimap.  Use 'M-x customize-group RET minimap RET' to adapt
+minimap to your needs.
 
 ![Screenshot](minimap.png)
 
