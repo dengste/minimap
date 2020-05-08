@@ -248,8 +248,8 @@ enabled.  This variable can have the following values:
   (see: `minimap-display-semantic-overlays').
 'always -- Always active.
 nil -- Inactive."
-  :type '(choice (const :tag "Fallback if CEDET unavailable." 'as-fallback)
-		 (const :tag "Always active." 'always)
+  :type '(choice (const :tag "Fallback if CEDET unavailable." as-fallback)
+		 (const :tag "Always active." always)
 		 (const :tag "Inactive." nil))
   :group 'minimap)
 
@@ -297,7 +297,7 @@ whether it is active or not. Any other value will delete the
 minimap window as soon as you enter a buffer which is not derived
 from `minimap-major-modes' (excluding the minibuffer)."
   :type '(choice (const :tag "Never delete automatically" nil)
-		 (const :tag "Keep as long as buffer visible" 'visible)
+		 (const :tag "Keep as long as buffer visible" visible)
 		 (const :tag "Delete when entering unsupported buffer" t))
   :group 'minimap)
 
