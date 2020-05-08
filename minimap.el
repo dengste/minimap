@@ -287,12 +287,18 @@ automatically re-created as soon as you kill it."
   :type 'boolean
   :group 'minimap)
 
-(defcustom minimap-automatically-delete-window t
+(defcustom minimap-automatically-delete-window 'visible
   "Whether the minimap window should be automatically deleted.
-Setting this to non-nil will delete the minibuffer side window
-when you enter a buffer which is not derived from
-`minimap-major-modes' (excluding the minibuffer)."
-  :type 'boolean
+You can choose between three different behaviors here: If this is
+`nil', the minimap window will never be automatically deleted. If
+this is set to symbol 'visible, the minimap stays active as long
+as the minimap's buffer is visible somewhere in the frame,
+whether it is active or not. Any other value will delete the
+minimap window as soon as you enter a buffer which is not derived
+from `minimap-major-modes' (excluding the minibuffer)."
+  :type '(choice (const :tag "Never delete automatically" nil)
+		 (const :tag "Keep as long as buffer visible" 'visible)
+		 (const :tag "Delete when entering unsupported buffer" t))
   :group 'minimap)
 
 (defcustom minimap-tag-only nil
@@ -542,9 +548,10 @@ When FORCE, enforce update of the active region."
 	    (sit-for 0)
 	    ;; ...and call update again.
 	    (minimap-update t))
-	;; Otherwise, delete window if the user so wishes.
+	;; We have entered a buffer for which no minimap should be
+	;; displayed. Check if we should de
 	(when (and (minimap-get-window)
-		   minimap-automatically-delete-window)
+		   (minimap-need-to-delete-window))
 	  ;; We wait a tiny bit before deleting the window, since we
 	  ;; might only be temporarily in another buffer.
 	  (run-with-timer 0.3 nil
@@ -552,6 +559,13 @@ When FORCE, enforce update of the active region."
 			    (when (and (null (minimap-active-current-buffer-p))
 				       (minimap-get-window))
 			      (delete-window (minimap-get-window))))))))))
+
+(defun minimap-need-to-delete-window ()
+  "Check if we should delete the minimap window.
+This depends on `minimap-automatically-delete-window'."
+  (if (eq minimap-automatically-delete-window 'visible)
+      (null (get-buffer-window minimap-active-buffer))
+    (null minimap-automatically-delete-window)))
 
 (defun minimap-update-current-buffer (force)
   "Update minimap for the current buffer."
