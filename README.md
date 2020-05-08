@@ -12,7 +12,7 @@ Simply use M-x minimap-mode to toggle activation of the minimap.
 Use 'M-x customize-group RET minimap RET' to adapt minimap to your
 needs.
 
-[Screenshot](minimap.png)
+![Screenshot](minimap.png)
 
 ### Before you make a pull request:
 
