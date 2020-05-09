@@ -1,10 +1,10 @@
 ;;; minimap.el --- Sidebar showing a "mini-map" of a buffer
 
-;; Copyright (C) 2009-2014 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
 
 ;; Author: David Engster <deng@randomsample.de>
 ;; Keywords:
-;; Version: 1.2
+;; Version: 1.3
 
 ;; This file is part of GNU Emacs.
 
@@ -49,6 +49,16 @@
 
 
 ;;; News:
+;;
+;;;; Changes since v1.2:
+;;
+;; - New option: minimap-hide-cursor (active by default)
+;; - New option: minimap-disable-mode-line (active by default)
+;; - Make current line highlighting face configurable, change to dark gray.
+;; - New default behavior for minimap-automatically-delete-window:
+;;   keep minimap window as long as buffer is visible. Change variable
+;;   to 't' to get old behavior.
+;; - Bug fixes
 ;;
 ;;;; Changes since v1.1:
 ;;
